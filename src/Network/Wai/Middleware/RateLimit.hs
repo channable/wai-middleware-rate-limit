@@ -11,17 +11,25 @@ module Network.Wai.Middleware.RateLimit
   ) where
 
 import Control.Monad.State (State)
+import Data.Aeson (ToJSON, encode)
 import Data.Time.Clock (getCurrentTime)
 
+import qualified Data.ByteString.Lazy as LBS
 import qualified Network.HTTP.Types as HTTPTypes
 import qualified Network.Wai as Wai
+import qualified Web.JWT as JWT
 
-import Data.LeakyBucket (LeakyBucket (..))
-import Data.RateLimit (queryLimit, recordAccess)
-import WarpMachine.Auth (AuthClaim, JwtAndClaims)
-import WarpMachine.Responses (jsonResponse)
+import Network.Wai.Middleware.RateLimit.LeakyBucket (LeakyBucket (..))
+import Network.Wai.Middleware.RateLimit.RateLimit (queryLimit, recordAccess)
 
-import qualified Data.IP as IP
+import qualified Network.Wai.Middleware.RateLimit.IP as IP
+
+
+-- TODO: Fix this
+data AuthClaim = AuthClaim
+
+-- | Type alias to help with our Middleware.
+type JwtAndClaims = (JWT.JWT JWT.VerifiedJWT, AuthClaim)
 
 
 -- | Functions for updating the rate limit state.
@@ -81,3 +89,9 @@ checkIpRateLimit rlState app request respond = do
 
 tooManyRequestsResponse :: Wai.Response
 tooManyRequestsResponse = jsonResponse (HTTPTypes.Status 429 "Too Many Requests") ()
+
+jsonResponseLBS :: HTTPTypes.Status -> LBS.ByteString -> Wai.Response
+jsonResponseLBS status = Wai.responseLBS status [(HTTPTypes.hContentType, "application/json")]
+
+jsonResponse :: ToJSON a => HTTPTypes.Status -> a -> Wai.Response
+jsonResponse status value = jsonResponseLBS status (encode value)

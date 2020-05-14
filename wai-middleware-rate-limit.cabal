@@ -29,11 +29,14 @@ library
     Network.Wai.Middleware.RateLimit.IP
     Network.Wai.Middleware.RateLimit.LeakyBucket
     Network.Wai.Middleware.RateLimit.RateLimit
-  build-depends:       async
+  build-depends:       aeson
+                     , async
                      , base >=4.6 && <5
+                     , bytestring
                      , hashable
                      , http-types
                      , ip
+                     , jwt
                      , mtl
                      , network
                      , stm
