@@ -1,4 +1,4 @@
-module Data.Time.Frequency
+module Network.Wai.Middleware.RateLimit.Frequency
   ( Frequency (..)
   , RequestsPerMinute (..)
   , fromRequestsPerMinute

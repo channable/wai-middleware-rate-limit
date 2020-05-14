@@ -6,7 +6,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Data.IP
+module Network.Wai.Middleware.RateLimit.IP
   ( Address (..)
   , fromWaiRequest
   ) where

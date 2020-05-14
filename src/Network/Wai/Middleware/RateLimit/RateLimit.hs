@@ -3,7 +3,7 @@
 -- LeakyBucket.
 {-# LANGUAGE FlexibleContexts #-}
 
-module Data.RateLimit
+module Network.Wai.Middleware.RateLimit.RateLimit
   ( -- * Rate limiting actions
     recordAccess
   , resetLimit
@@ -27,7 +27,7 @@ import StmContainers.Map (Map)
 import qualified Control.Monad.State as State
 import qualified StmContainers.Map as Map
 
-import Data.LeakyBucket (LeakyBucket (..), LeakyBucketSpec, empty, insert, leakUntil)
+import Network.Wai.Middleware.RateLimit.LeakyBucket (LeakyBucket (..), LeakyBucketSpec, empty, insert, leakUntil)
 
 
 -- | Record that a resource is going to be accessed, and return whether this is

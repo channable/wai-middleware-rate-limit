@@ -1,4 +1,4 @@
-module Data.LeakyBucket
+module Network.Wai.Middleware.RateLimit.LeakyBucket
   ( LeakyBucketSpec (..)
   , LeakyBucket (..)
   , empty
@@ -9,7 +9,7 @@ module Data.LeakyBucket
 import Data.Time.Calendar (Day (..))
 import Data.Time.Clock (UTCTime (..), diffUTCTime)
 
-import Data.Time.Frequency (Frequency, mulDxF)
+import Network.Wai.Middleware.RateLimit.Frequency (Frequency, mulDxF)
 
 
 -- | A capacity and a leak rate.
