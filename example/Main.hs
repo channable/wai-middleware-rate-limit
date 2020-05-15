@@ -49,7 +49,7 @@ main = do
         -- this is the actual rate-limiting middleware. We pass 'Nothing' here to keep this
         -- example simple. In a real application, that has authenticated users, we would pass
         -- the concrete token type here.
-        middleware = rateLimitMiddleware rateLimitState Nothing
+        middleware = rateLimitMiddleware rateLimitState (Nothing :: Maybe (Int, Int))
 
         app = logStdoutDev $ middleware $ staticApp $ defaultWebAppSettings "."
 
