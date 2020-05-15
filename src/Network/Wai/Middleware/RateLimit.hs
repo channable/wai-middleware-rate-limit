@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 -- Necessary for withLeakyBucket to be agnostic of return type. Without this,
 -- we would have to specify a specific return type, which would not work with
 -- multiple uses of the function.
@@ -8,25 +10,39 @@ module Network.Wai.Middleware.RateLimit
   ( RateLimitState (..)
   , RateLimitMiddleware
   , rateLimitMiddleware
+
+  -- re-exports
+  , LeakyBucketSpec (..)
+  , fromHz
+  , inMemory
   ) where
 
 import Control.Monad.State (State)
 import Data.Aeson (ToJSON, encode)
+import Data.Hashable (Hashable (..))
 import Data.Time.Clock (getCurrentTime)
+import GHC.Generics (Generic)
 
 import qualified Data.ByteString.Lazy as LBS
 import qualified Network.HTTP.Types as HTTPTypes
 import qualified Network.Wai as Wai
 import qualified Web.JWT as JWT
 
-import Network.Wai.Middleware.RateLimit.LeakyBucket (LeakyBucket (..))
-import Network.Wai.Middleware.RateLimit.RateLimit (queryLimit, recordAccess)
+import Network.Wai.Middleware.RateLimit.Frequency (fromHz)
+import Network.Wai.Middleware.RateLimit.LeakyBucket (
+    LeakyBucket (..), LeakyBucketSpec (..))
+import Network.Wai.Middleware.RateLimit.RateLimit (
+    inMemory, queryLimit, recordAccess)
 
 import qualified Network.Wai.Middleware.RateLimit.IP as IP
 
 
 -- TODO: Fix this
 data AuthClaim = AuthClaim
+  deriving (Eq, Ord, Show, Generic)
+
+instance Hashable AuthClaim
+
 
 -- | Type alias to help with our Middleware.
 type JwtAndClaims = (JWT.JWT JWT.VerifiedJWT, AuthClaim)

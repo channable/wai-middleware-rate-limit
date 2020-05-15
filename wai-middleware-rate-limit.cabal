@@ -56,6 +56,8 @@ executable wai-middleware-rate-limit-example
   main-is:             Main.hs
   build-depends:       async
                      , base >=4.6 && <5
+                     , monad-logger
+                     , stm-containers
                      , wai
                      , wai-app-static
                      , wai-extra
