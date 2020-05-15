@@ -8,5 +8,4 @@ flags:
 
 nix:
   enable: yes
-  packages:
-    - "zlib"
+  packages: [zlib]

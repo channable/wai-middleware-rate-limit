@@ -69,6 +69,7 @@ rateLimitMiddleware state authClaim app request respond =
   in
     case Wai.pathInfo request of
       ["rate_limits"] -> respond =<< displayRateLimit state authClaim
+      -- Note, that if there is no authClaim, the IP rate limits will be applied.
       _ -> maybe checkIp checkAuthclaim authClaim
 
 displayRateLimit :: RateLimitState -> Maybe JwtAndClaims -> IO Wai.Response
