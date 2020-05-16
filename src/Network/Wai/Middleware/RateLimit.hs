@@ -9,6 +9,7 @@
 module Network.Wai.Middleware.RateLimit
   ( RateLimitState (..)
   , RateLimitMiddleware
+  , initRateLimitState
   , rateLimitMiddleware
 
   -- re-exports
@@ -34,6 +35,7 @@ import Network.Wai.Middleware.RateLimit.RateLimit (
     inMemory, queryLimit, recordAccess)
 
 import qualified Network.Wai.Middleware.RateLimit.IP as IP
+import qualified StmContainers.Map as STMMap
 
 
 -- | Functions for updating the rate limit state.
@@ -91,6 +93,24 @@ checkIpRateLimit rlState app request respond = do
     allow = app request respond
     block = respond tooManyRequestsResponse
 
+-- | Initialize the in-memory rate limiting state.
+initRateLimitState ::
+       (Hashable key, Eq key)
+    => LeakyBucketSpec
+    -> LeakyBucketSpec
+    -> IO (RateLimitState key)
+initRateLimitState authClaimLeakyBucketSpec ipLeakyBucketSpec = do
+    -- Set up the in-memory rate-limiting state that persists across requests.
+    -- This STMMap is used to rate-limit based on the authentication token of a client
+    authClaimRateLimits <- STMMap.newIO
+    -- This STMMap is used to rate-limit based on the IP address of a client
+    ipRateLimits <- STMMap.newIO
+
+    -- set up the data structure keeping track of both types of buckets
+    pure RateLimitState
+            { withAuthclaimBucket = inMemory (const authClaimLeakyBucketSpec) authClaimRateLimits
+            , withIpBucket = inMemory (const ipLeakyBucketSpec) ipRateLimits
+            }
 
 tooManyRequestsResponse :: Wai.Response
 tooManyRequestsResponse = jsonResponse (HTTPTypes.Status 429 "Too Many Requests") ()

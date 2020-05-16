@@ -14,9 +14,9 @@ import Network.Wai.Application.Static (staticApp, defaultWebAppSettings)
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Middleware.RequestLogger (logStdoutDev)
 import Network.Wai.Middleware.RateLimit (
-    LeakyBucketSpec (..), RateLimitState (..), fromHz, inMemory, rateLimitMiddleware)
+    LeakyBucketSpec (..), RateLimitState (..), fromHz, initRateLimitState, inMemory,
+    rateLimitMiddleware)
 
-import qualified StmContainers.Map as STMMap
 
 -- your token type must be deriving Hashable, since the hash of the token data will
 -- be used as the key for the rate limiting hash map
@@ -30,27 +30,18 @@ extractToken request = maybe Nothing (Just . MyToken . decodeUtf8 . snd) maybeHe
 
 main :: IO ()
 main = do
-    -- Set up the in-memory rate-limiting state that persists across requests.
-    -- This STMMap is used to rate-limit based on the authentication token of a client
-    authClaimRateLimits <- STMMap.newIO
-    -- This STMMap is used to rate-limit based on the IP address of a client
-    ipRateLimits <- STMMap.newIO
-
     -- set the bucket size to 1 and the leak rate to 1 Hz, i.e. 1 request per second is allowed
     let authClaimLeakyBucketSpec = LeakyBucketSpec 1 (fromHz 1)
         ipLeakyBucketSpec = LeakyBucketSpec 1 (fromHz 1)
 
-        -- set up the data structure keeping track of both types of buckets
-        rateLimitState = RateLimitState
-            { withAuthclaimBucket = inMemory (const authClaimLeakyBucketSpec) authClaimRateLimits
-            , withIpBucket = inMemory (const ipLeakyBucketSpec) ipRateLimits
-            }
+    -- initialize the in-memory rate limiting state
+    rateLimitState <- initRateLimitState authClaimLeakyBucketSpec ipLeakyBucketSpec
 
+    let
         -- this is the actual rate-limiting middleware. We pass 'Nothing' here to keep this
         -- example simple. In a real application, that has authenticated users, we would pass
         -- the concrete token type here.
         middleware = rateLimitMiddleware rateLimitState (Nothing :: Maybe (Int, Int))
-
         app = logStdoutDev $ middleware $ staticApp $ defaultWebAppSettings "."
 
     -- Start a web server, serving static files from the local directory.
